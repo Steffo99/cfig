@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "cfig"
+version = "0.1.0"
+description = "The ultimate configuration manager"
+authors = ["Stefano Pigozzi <me@steffo.eu>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+lazy-object-proxy = "^1.7.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
