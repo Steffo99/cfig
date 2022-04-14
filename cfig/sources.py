@@ -58,6 +58,8 @@ class EnvironmentFileSource(EnvironmentSource):
 
     def get(self, key: str) -> t.Optional[str]:
         path = super().get(key)
+        if path is None:
+            return None
         try:
             with open(path, "r") as file:
                 return file.read()

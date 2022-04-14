@@ -5,6 +5,7 @@ TYPE = t.TypeVar("TYPE")
 
 class Configurable(t.Protocol):
     __name__: str
+    __doc__: str
 
     def __call__(self, val: t.Any) -> TYPE:
         ...
@@ -22,6 +23,7 @@ class ConfigurableOptional(Configurable):
 
 __all__ = (
     "TYPE",
+    "Configurable",
     "ConfigurableRequired",
     "ConfigurableOptional",
 )

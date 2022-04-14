@@ -56,6 +56,11 @@ class Configuration:
         :class:`dict` mapping all keys registered to this object to their respective items.
         """
 
+        self.docs: dict[str, str] = {}
+        """
+        :class:`dict` mapping all keys registered to this object to the description of what they should contain.
+        """
+
         log.debug("Initialized successfully!")
 
     # noinspection PyMethodMayBeStatic
@@ -85,7 +90,7 @@ class Configuration:
             log.debug("Item created successfully!")
 
             log.debug("Registering item in the configuration...")
-            self._register_item(key, item)
+            self._register_item(key, item, configurable.__doc__)
             log.debug("Registered successfully!")
 
             # Return the created item so it will take the place of the decorated function
@@ -108,7 +113,7 @@ class Configuration:
             log.debug("Item created successfully!")
 
             log.debug("Registering item in the configuration...")
-            self._register_item(key, item)
+            self._register_item(key, item, configurable.__doc__)
             log.debug("Registered successfully!")
 
             # Return the created item so it will take the place of the decorated function
@@ -125,12 +130,15 @@ class Configuration:
         def _decorated():
             log.debug(f"Retrieving value with key: {key!r}")
             val = self._retrieve_value_optional(key)
-            log.debug("Retrieved val successfully!")
+            log.debug("Retrieved value successfully!")
 
-            log.debug("Running user-defined configurable function...")
-            val = f(val)
+            if val is None:
+                log.debug(f"Not running user-defined configurable function since value is {val!r}.")
+            else:
+                log.debug("Running user-defined configurable function...")
+                val = f(val)
+
             log.info(f"{key} = {val!r}")
-
             return val
 
         return _decorated
@@ -176,19 +184,27 @@ class Configuration:
         if value := self._retrieve_value_optional(key):
             return value
         else:
-            raise errors.ConfigurationError(f"Missing {key} configuration value.")
+            raise errors.MissingValueError(key)
 
-    def _register_item(self, key, item):
+    def _register_item(self, key, item, doc):
         """
         Register an item in this Configuration.
         """
 
         if key in self.items:
             raise errors.DuplicateError(key)
+        if key in self.docs:
+            raise errors.DuplicateError(key)
 
         self.items[key] = item
+        self.docs[key] = doc
 
     def fetch_all(self):
         log.debug("Fetching now all configuration items...")
         for value in self.items.values():
             _ = value.__wrapped__
+
+
+__all__ = (
+    "Configuration",
+)

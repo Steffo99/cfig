@@ -28,3 +28,19 @@ class ConfigurationError(Exception):
     """
     An error is present in the configuration specified by the user.
     """
+
+
+class MissingValueError(ConfigurationError):
+    """
+    A required configuration key has no value.
+    """
+
+
+__all__ = (
+    "DefinitionError",
+    "UnknownKeyError",
+    "RegistrationError",
+    "DuplicateError",
+    "ConfigurationError",
+    "MissingValueError",
+)
