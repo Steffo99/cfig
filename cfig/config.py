@@ -22,7 +22,6 @@ Configuration
     A group of items.
 """
 
-import os
 import lazy_object_proxy
 import typing as t
 import logging
