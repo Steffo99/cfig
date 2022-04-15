@@ -1,43 +1,85 @@
 import pytest
 import cfig
+import os
+import lazy_object_proxy
 
 
-def test_config(monkeypatch):
-    config = cfig.Configuration()
+class TestConfig:
+    def test_creation(self):
+        self.config = cfig.Configuration()
 
-    @config.required()
-    def FIRST_NUMBER(val: str) -> int:
-        """The first number to sum."""
-        return int(val)
+        assert isinstance(self.config, cfig.Configuration)
+        assert self.config.sources == cfig.Configuration.DEFAULT_SOURCES
 
-    @config.optional()
-    def SECOND_NUMBER(val: str) -> int:
-        """The second number to sum."""
-        return int(val)
+    def test_required(self):
+        @self.config.required()
+        def FIRST_NUMBER(val: str) -> int:
+            """The first number to sum."""
+            return int(val)
 
-    # Assert the two configuration items have been registered
-    assert "FIRST_NUMBER" in config.items
-    assert "FIRST_NUMBER" in config.docs
-    assert "SECOND_NUMBER" in config.items
-    assert "SECOND_NUMBER" in config.docs
+        assert isinstance(FIRST_NUMBER, lazy_object_proxy.Proxy)
+        assert callable(FIRST_NUMBER.__factory__)
+        assert not FIRST_NUMBER.__resolved__
 
-    # Assert docstrings are accessible even if the two items aren't
-    assert config.docs["FIRST_NUMBER"] == """The first number to sum."""
-    assert config.docs["SECOND_NUMBER"] == """The second number to sum."""
+        assert self.config.items["FIRST_NUMBER"] is FIRST_NUMBER
+        assert self.config.docs["FIRST_NUMBER"] == """The first number to sum."""
 
-    # Assert that an error is raised if items are fetched without any value set
-    with pytest.raises(cfig.MissingValueError):
-        config.fetch_all()
+        self.FIRST_NUMBER = FIRST_NUMBER
 
-    # Setup the environment
-    monkeypatch.setenv("FIRST_NUMBER", "1")
+    def test_optional(self):
+        @self.config.optional()
+        def SECOND_NUMBER(val: str) -> int:
+            """The second number to sum."""
+            return int(val)
 
-    # Assert that no error is raised with all required values set
-    config.fetch_all()
+        assert isinstance(SECOND_NUMBER, lazy_object_proxy.Proxy)
+        assert callable(SECOND_NUMBER.__factory__)
+        assert not SECOND_NUMBER.__resolved__
 
-    # Assert the two variables have the correct values
-    assert FIRST_NUMBER == 1
-    assert SECOND_NUMBER == None
+        assert self.config.items["SECOND_NUMBER"] is SECOND_NUMBER
+        assert self.config.docs["SECOND_NUMBER"] == """The second number to sum."""
 
-    # Please note that SECOND_NUMBER is not the same instance as None, as it is a lazy object proxy!
-    assert SECOND_NUMBER is not None
+        self.SECOND_NUMBER = SECOND_NUMBER
+
+    def test_fetch_missing(self, monkeypatch):
+        monkeypatch.setenv("FIRST_NUMBER", "")
+        monkeypatch.setenv("SECOND_NUMBER", "")
+
+        assert not os.environ.get("FIRST_NUMBER")
+        assert not os.environ.get("SECOND_NUMBER")
+
+        with pytest.raises(cfig.MissingValueError):
+            self.config.fetch_all()
+
+    def test_fetch_required(self, monkeypatch):
+        monkeypatch.setenv("FIRST_NUMBER", "1")
+        monkeypatch.setenv("SECOND_NUMBER", "")
+
+        assert os.environ.get("FIRST_NUMBER") == "1"
+        assert not os.environ.get("SECOND_NUMBER")
+
+        self.config.fetch_all()
+
+        # noinspection PyUnresolvedReferences
+        assert self.FIRST_NUMBER.__resolved__
+        assert self.FIRST_NUMBER == 1
+        # noinspection PyUnresolvedReferences
+        assert self.SECOND_NUMBER.__resolved__
+        assert self.SECOND_NUMBER == None
+        assert self.SECOND_NUMBER is not None
+
+    def test_fetch_optional(self, monkeypatch):
+        monkeypatch.setenv("FIRST_NUMBER", "1")
+        monkeypatch.setenv("SECOND_NUMBER", "2")
+
+        assert os.environ.get("FIRST_NUMBER") == "1"
+        assert os.environ.get("FIRST_NUMBER") == "2"
+
+        self.config.fetch_all()
+
+        # noinspection PyUnresolvedReferences
+        assert self.FIRST_NUMBER.__resolved__
+        assert self.FIRST_NUMBER == 1
+        # noinspection PyUnresolvedReferences
+        assert self.SECOND_NUMBER.__resolved__
+        assert self.SECOND_NUMBER == 2
