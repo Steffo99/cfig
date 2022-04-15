@@ -198,10 +198,24 @@ class Configuration:
         self.items[key] = item
         self.docs[key] = doc
 
-    def fetch_all(self):
-        log.debug("Fetching now all configuration items...")
-        for value in self.items.values():
-            _ = value.__wrapped__
+    def fetch_all(self, clear: bool = True):
+        """
+        Fetch all configuration values.
+
+        If values were fetched earlier, and the ``clear`` parameter is :data:`True`,
+        this will clear the cache and re-fetch them, possibly changing some items.
+        """
+
+        if clear:
+            log.debug("Clearing the cached items...")
+            for item in self.items.values():
+                log.debug(f"Clearing: {item!r}")
+                del item.__wrapped__
+
+        log.debug("Fetching items...")
+        for item in self.items.values():
+            log.debug(f"Fetching: {item!r}")
+            _ = item.__wrapped__
 
 
 __all__ = (
