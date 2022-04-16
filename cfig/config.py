@@ -1,30 +1,11 @@
 """
 This module defines the :class:`Configuration` class.
-
-The used terminology is:
-
-Key
-    The base name of a configuration value.
-    For example, the name of an environment variable.
-
-Value
-    A single non-processed configuration value in :class:`str` form.
-    For example, the raw string value of an environment variable.
-
-Item
-    A single processed value in any form.
-    Internally, this is a :class:`lazy_object_proxy.Proxy`: an object whose value is not retrieved until it is accessed.
-
-Configurable
-    A specially decorated function that processes a value before it is turned into an item.
-
-Configuration
-    A group of items.
 """
 
 import lazy_object_proxy
 import typing as t
 import logging
+import collections
 from . import errors
 from . import customtyping as ct
 from . import sources as s
@@ -34,95 +15,173 @@ log = logging.getLogger(__name__)
 
 class Configuration:
     """
-    A group of configurable items.
+    A collection of proxies with methods to easily define more.
     """
 
     DEFAULT_SOURCES = [
         s.EnvironmentSource(),
         s.EnvironmentFileSource(),
     ]
+    """
+    The sources used in :meth:`__init__` if no other source is specified.
+    """
+
+    class ProxyDict(collections.UserDict):
+        """
+        An extended :class:`dict` with methods to perform some actions on the contained proxies.
+        """
+
+        def resolve(self):
+            """
+            Resolve all values of the proxies inside this dictionary.
+            """
+
+            log.debug("Resolving and caching all values...")
+            for item in self.values():
+                log.debug(f"Resolving: {item!r}")
+                _ = item.__wrapped__
+
+        def unresolve(self):
+            """
+            Unresolve all values of the proxies inside this dictionary.
+            """
+
+            log.debug("Unresolving all cached values...")
+            for item in self.values():
+                log.debug(f"Unresolving: {item!r}")
+                del item.__wrapped__
 
     def __init__(self, *, sources: t.Optional[t.Collection[s.Source]] = None):
+        """
+        Create a new :class:`Configuration`.
+        """
+
         log.debug(f"Initializing a new {self.__class__.__qualname__} object...")
 
         self.sources: t.Collection[s.Source] = sources or self.DEFAULT_SOURCES
         """
-        Collection of all places from where values should be retrieved from.
+        Collection of sources to use for values of this configuration.
         """
 
-        self.items: dict[str, t.Any] = {}
+        self.proxies: Configuration.ProxyDict = Configuration.ProxyDict()
         """
-        :class:`dict` mapping all keys registered to this object to their respective items.
+        Dictionary mapping configuration keys belonging to this :class:`.Configuration` to the proxy caching their values.
+        
+        Typed with :class:`typing.Any` so that proxies can be typed as the object they cache.
         """
 
         self.docs: dict[str, str] = {}
         """
-        :class:`dict` mapping all keys registered to this object to the description of what they should contain.
+        Dictionary mapping configuration keys belonging to this :class:`.Configuration` to a description of what they should contain.
         """
 
         log.debug("Initialized successfully!")
 
-    # noinspection PyMethodMayBeStatic
-    def _determine_configurable_key(self, f: ct.Configurable) -> str:
+    def required(self, key: t.Optional[str] = None, doc: t.Optional[str] = None) -> t.Callable[[ct.ResolverRequired], ct.TYPE]:
         """
-        Determine the key of a configurable.
+        Mark a function as a resolver for a required configuration value.
+
+        It is a decorator factory, and therefore should be used like so::
+
+            @config.required()
+            def MY_KEY(val: str) -> str:
+                return val
+
+        Key can be overridden manually with the ``key`` parameter.
+
+        Docstring can be overridden manually with the ``doc`` parameter.
+        """
+
+        def _decorator(configurable: ct.ResolverRequired) -> ct.TYPE:
+            nonlocal key
+            nonlocal doc
+
+            if not key:
+                log.debug("Determining key...")
+                key: str = self._find_resolver_key(configurable)
+                log.debug(f"Key is: {key!r}")
+
+            log.debug("Creating required item...")
+            item: ct.TYPE = self._create_proxy_required(key, configurable)
+            log.debug("Item created successfully!")
+
+            log.debug("Registering item in the configuration...")
+            self.register(key, item, doc or configurable.__doc__)
+            log.debug("Registered successfully!")
+
+            # Return the created item, so it will take the place of the decorated function
+            return item
+
+        return _decorator
+
+    def optional(self, key: t.Optional[str] = None, doc: t.Optional[str] = None) -> t.Callable[[ct.ResolverOptional], ct.TYPE]:
+        """
+        Mark a function as a resolver for a required configuration value.
+
+        It is a decorator factory, and therefore should be used like so::
+
+            @config.optional()
+            def MY_KEY(val: str) -> str:
+                return val
+
+        Key can be overridden manually with the ``key`` parameter.
+
+        Docstring can be overridden manually with the ``doc`` parameter.
+        """
+
+        def _decorator(configurable: ct.ResolverOptional) -> ct.TYPE:
+            nonlocal key
+            nonlocal doc
+
+            if not key:
+                log.debug("Determining key...")
+                key: str = self._find_resolver_key(configurable)
+                log.debug(f"Key is: {key!r}")
+
+            log.debug("Creating optional item...")
+            item: ct.TYPE = self._create_proxy_optional(key, configurable)
+            log.debug("Item created successfully!")
+
+            log.debug("Registering item in the configuration...")
+            self.register(key, item, doc or configurable.__doc__)
+            log.debug("Registered successfully!")
+
+            # Return the created item, so it will take the place of the decorated function
+            return item
+
+        return _decorator
+
+    # noinspection PyMethodMayBeStatic
+    def _find_resolver_key(self, resolver: ct.Resolver) -> str:
+        """
+        Find the key of a resolver by accessing its ``__name__``.
+
+        :raises .errors.UnknownResolverNameError: If the key could not be determined, for example if the resolver had no ``__name__``.
         """
 
         try:
-            return f.__name__
+            return resolver.__name__
         except AttributeError:
-            log.error(f"Could not determine key of: {f!r}")
-            raise errors.UnknownKeyError()
+            log.error(f"Could not determine key of: {resolver!r}")
+            raise errors.UnknownResolverNameError()
 
-    def required(self) -> t.Callable[[ct.ConfigurableRequired], ct.TYPE]:
+    def _retrieve_value_optional(self, key: str) -> t.Optional[str]:
         """
-        Create the decorator to convert the decorated function into a required configurable.
-        """
-
-        def _decorator(configurable: ct.ConfigurableRequired) -> ct.TYPE:
-            log.debug("Determining key...")
-            key: str = self._determine_configurable_key(configurable)
-            log.debug(f"Key is: {key!r}")
-
-            log.debug("Creating required item...")
-            item: ct.TYPE = self._create_item_required(key, configurable)
-            log.debug("Item created successfully!")
-
-            log.debug("Registering item in the configuration...")
-            self._register_item(key, item, configurable.__doc__)
-            log.debug("Registered successfully!")
-
-            # Return the created item so it will take the place of the decorated function
-            return item
-
-        return _decorator
-
-    def optional(self) -> t.Callable[[ct.ConfigurableOptional], ct.TYPE]:
-        """
-        Create the decorator to convert the decorated function into a required configurable.
+        Try to retrieve a value from all :attr:`.sources` of this :class:`.Configuration`, returning :data:`None` if the value is not found anywhere.
         """
 
-        def _decorator(configurable: ct.ConfigurableOptional) -> ct.TYPE:
-            log.debug("Determining key...")
-            key: str = self._determine_configurable_key(configurable)
-            log.debug(f"Key is: {key!r}")
+        for source in self.sources:
+            log.debug(f"Trying to retrieve {key!r} from {source!r}...")
+            if value := source.get(key):
+                log.debug(f"Retrieved {key!r} from {source!r}: {value!r}")
+                return value
+        else:
+            log.debug(f"No values found for {key!r}, returning None.")
+            return None
 
-            log.debug("Creating optional item...")
-            item: ct.TYPE = self._create_item_optional(key, configurable)
-            log.debug("Item created successfully!")
-
-            log.debug("Registering item in the configuration...")
-            self._register_item(key, item, configurable.__doc__)
-            log.debug("Registered successfully!")
-
-            # Return the created item so it will take the place of the decorated function
-            return item
-
-        return _decorator
-
-    def _create_item_optional(self, key: str, f: ct.ConfigurableOptional) -> lazy_object_proxy.Proxy:
+    def _create_proxy_optional(self, key: str, resolver: ct.ResolverOptional) -> lazy_object_proxy.Proxy:
         """
-        Create a new optional item.
+        Create, from a resolver, a proxy tolerating non-specified values.
         """
 
         @lazy_object_proxy.Proxy
@@ -135,16 +194,28 @@ class Configuration:
                 log.debug(f"Not running user-defined configurable function since value is {val!r}.")
             else:
                 log.debug("Running user-defined configurable function...")
-                val = f(val)
+                val = resolver(val)
 
             log.info(f"{key} = {val!r}")
             return val
 
         return _decorated
 
-    def _create_item_required(self, key: str, f: ct.ConfigurableRequired) -> lazy_object_proxy.Proxy:
+    def _retrieve_value_required(self, key: str) -> str:
         """
-        Create a new required item.
+        Try to retrieve a value from all :attr:`.sources` of this Configuration, raising :exc:`errors.MissingValueError` if the value is not found anywhere.
+
+        :raises .errors.MissingValueError: If the value with the given key is not found in any source.
+        """
+
+        if value := self._retrieve_value_optional(key):
+            return value
+        else:
+            raise errors.MissingValueError(key)
+
+    def _create_proxy_required(self, key: str, f: ct.ResolverRequired) -> lazy_object_proxy.Proxy:
+        """
+        Create, from a resolver, a proxy intolerant about non-specified values.
         """
 
         @lazy_object_proxy.Proxy
@@ -161,61 +232,25 @@ class Configuration:
 
         return _decorated
 
-    def _retrieve_value_optional(self, key: str) -> t.Optional[str]:
+    def register(self, key, proxy, doc):
         """
-        Try to retrieve a value from all :attr:`.sources` of this Configuration.
+        Register a new proxy in this Configuration.
+
+        :param key: The configuration key to register the proxy to.
+        :param proxy: The proxy to register in :attr:`.proxies`.
+        :param doc: The docstring to register in :attr:`.docs`.
+        :raises .errors.DuplicateProxyNameError` if the key already exists in either :attr:`.proxies` or :attr:`.docs`.
         """
 
-        for source in self.sources:
-            log.debug(f"Trying to retrieve {key!r} from {source!r}...")
-            if value := source.get(key):
-                log.debug(f"Retrieved {key!r} from {source!r}: {value!r}")
-                return value
-        else:
-            log.debug(f"No values found for {key!r}, returning None.")
-            return None
-
-    def _retrieve_value_required(self, key: str) -> str:
-        """
-        Retrieve a new value from all supported configuration schemes in :class:`str` form.
-        """
-
-        if value := self._retrieve_value_optional(key):
-            return value
-        else:
-            raise errors.MissingValueError(key)
-
-    def _register_item(self, key, item, doc):
-        """
-        Register an item in this Configuration.
-        """
-
-        if key in self.items:
-            raise errors.DuplicateError(key)
+        if key in self.proxies:
+            raise errors.DuplicateProxyNameError(key)
         if key in self.docs:
-            raise errors.DuplicateError(key)
+            raise errors.DuplicateProxyNameError(key)
 
-        self.items[key] = item
+        log.debug(f"Registering proxy {proxy!r} in {key!r}")
+        self.proxies[key] = proxy
+        log.debug(f"Registering doc {doc!r} in {key!r}")
         self.docs[key] = doc
-
-    def fetch_all(self, clear: bool = True):
-        """
-        Fetch all configuration values.
-
-        If values were fetched earlier, and the ``clear`` parameter is :data:`True`,
-        this will clear the cache and re-fetch them, possibly changing some items.
-        """
-
-        if clear:
-            log.debug("Clearing the cached items...")
-            for item in self.items.values():
-                log.debug(f"Clearing: {item!r}")
-                del item.__wrapped__
-
-        log.debug("Fetching items...")
-        for item in self.items.values():
-            log.debug(f"Fetching: {item!r}")
-            _ = item.__wrapped__
 
 
 __all__ = (

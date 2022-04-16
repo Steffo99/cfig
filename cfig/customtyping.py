@@ -3,7 +3,7 @@ import typing as t
 TYPE = t.TypeVar("TYPE")
 
 
-class Configurable(t.Protocol):
+class Resolver(t.Protocol):
     __name__: str
     __doc__: str
 
@@ -11,19 +11,19 @@ class Configurable(t.Protocol):
         ...
 
 
-class ConfigurableRequired(Configurable):
+class ResolverRequired(Resolver):
     def __call__(self, val: str) -> TYPE:
         ...
 
 
-class ConfigurableOptional(Configurable):
+class ResolverOptional(Resolver):
     def __call__(self, val: t.Optional[str]) -> TYPE:
         ...
 
 
 __all__ = (
     "TYPE",
-    "Configurable",
-    "ConfigurableRequired",
-    "ConfigurableOptional",
+    "Resolver",
+    "ResolverRequired",
+    "ResolverOptional",
 )

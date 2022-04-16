@@ -1,24 +1,24 @@
 class DefinitionError(Exception):
     """
-    An error is present in the definition of a :class:`cfig.Configurable` object.
+    An error is present in the definition of a :class:`cfig.Configuration`.
     """
 
 
-class UnknownKeyError(DefinitionError):
+class UnknownResolverNameError(DefinitionError):
     """
-    It was not possible to get the name of the wrapped function.
+    It was not possible to get the name of the resolver.
 
     Perhaps a call to :func:`functools.wraps` is missing?
     """
 
 
-class RegistrationError(DefinitionError):
+class ProxyRegistrationError(DefinitionError):
     """
     An error occurred during the proxy registration step.
     """
 
 
-class DuplicateError(RegistrationError):
+class DuplicateProxyNameError(ProxyRegistrationError):
     """
     Another proxy with the same name is already registered.
     """
@@ -38,9 +38,9 @@ class MissingValueError(ConfigurationError):
 
 __all__ = (
     "DefinitionError",
-    "UnknownKeyError",
-    "RegistrationError",
-    "DuplicateError",
+    "UnknownResolverNameError",
+    "ProxyRegistrationError",
+    "DuplicateProxyNameError",
     "ConfigurationError",
     "MissingValueError",
 )

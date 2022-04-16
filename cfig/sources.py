@@ -1,6 +1,7 @@
 import typing as t
 import abc
 import os
+import configparser
 
 
 class Source(metaclass=abc.ABCMeta):
@@ -10,7 +11,9 @@ class Source(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get(self, key: str) -> t.Optional[str]:
-        raise NotImplementedError()
+        """
+        Get the value with the given key from the source
+        """
 
 
 class EnvironmentSource(Source):

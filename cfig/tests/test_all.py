@@ -6,13 +6,17 @@ import lazy_object_proxy
 
 class TestConfig:
     def test_creation(self):
-        self.config = cfig.Configuration()
+        config = cfig.Configuration()
 
-        assert isinstance(self.config, cfig.Configuration)
-        assert self.config.sources == cfig.Configuration.DEFAULT_SOURCES
+        assert isinstance(config, cfig.Configuration)
+        assert config.sources == cfig.Configuration.DEFAULT_SOURCES
 
-    def test_required(self):
-        @self.config.required()
+    @pytest.fixture(scope="function")
+    def basic_config(self):
+        yield cfig.Configuration()
+
+    def test_registration_required(self, basic_config):
+        @basic_config.required()
         def FIRST_NUMBER(val: str) -> int:
             """The first number to sum."""
             return int(val)
@@ -20,14 +24,11 @@ class TestConfig:
         assert isinstance(FIRST_NUMBER, lazy_object_proxy.Proxy)
         assert callable(FIRST_NUMBER.__factory__)
         assert not FIRST_NUMBER.__resolved__
+        assert basic_config.proxies["FIRST_NUMBER"] is FIRST_NUMBER
+        assert basic_config.docs["FIRST_NUMBER"] == """The first number to sum."""
 
-        assert self.config.items["FIRST_NUMBER"] is FIRST_NUMBER
-        assert self.config.docs["FIRST_NUMBER"] == """The first number to sum."""
-
-        self.FIRST_NUMBER = FIRST_NUMBER
-
-    def test_optional(self):
-        @self.config.optional()
+    def test_registration_optional(self, basic_config):
+        @basic_config.optional()
         def SECOND_NUMBER(val: str) -> int:
             """The second number to sum."""
             return int(val)
@@ -35,13 +36,24 @@ class TestConfig:
         assert isinstance(SECOND_NUMBER, lazy_object_proxy.Proxy)
         assert callable(SECOND_NUMBER.__factory__)
         assert not SECOND_NUMBER.__resolved__
+        assert basic_config.proxies["SECOND_NUMBER"] is SECOND_NUMBER
+        assert basic_config.docs["SECOND_NUMBER"] == """The second number to sum."""
 
-        assert self.config.items["SECOND_NUMBER"] is SECOND_NUMBER
-        assert self.config.docs["SECOND_NUMBER"] == """The second number to sum."""
+    @pytest.fixture(scope="function")
+    def numbers_config(self, basic_config):
+        @basic_config.required()
+        def FIRST_NUMBER(val: str) -> int:
+            """The first number to sum."""
+            return int(val)
 
-        self.SECOND_NUMBER = SECOND_NUMBER
+        @basic_config.optional()
+        def SECOND_NUMBER(val: str) -> int:
+            """The second number to sum."""
+            return int(val)
 
-    def test_fetch_missing(self, monkeypatch):
+        yield basic_config
+
+    def test_resolve_missing(self, numbers_config, monkeypatch):
         monkeypatch.setenv("FIRST_NUMBER", "")
         monkeypatch.setenv("SECOND_NUMBER", "")
 
@@ -49,37 +61,95 @@ class TestConfig:
         assert not os.environ.get("SECOND_NUMBER")
 
         with pytest.raises(cfig.MissingValueError):
-            self.config.fetch_all()
+            numbers_config.proxies.resolve()
 
-    def test_fetch_required(self, monkeypatch):
+    def test_resolve_required(self, numbers_config, monkeypatch):
         monkeypatch.setenv("FIRST_NUMBER", "1")
         monkeypatch.setenv("SECOND_NUMBER", "")
 
         assert os.environ.get("FIRST_NUMBER") == "1"
         assert not os.environ.get("SECOND_NUMBER")
 
-        self.config.fetch_all()
+        first_number = numbers_config.proxies["FIRST_NUMBER"]
+        second_number = numbers_config.proxies["SECOND_NUMBER"]
 
-        # noinspection PyUnresolvedReferences
-        assert self.FIRST_NUMBER.__resolved__
-        assert self.FIRST_NUMBER == 1
-        # noinspection PyUnresolvedReferences
-        assert self.SECOND_NUMBER.__resolved__
-        assert self.SECOND_NUMBER == None
-        assert self.SECOND_NUMBER is not None
+        assert not first_number.__resolved__
+        assert not second_number.__resolved__
 
-    def test_fetch_optional(self, monkeypatch):
+        numbers_config.proxies.resolve()
+
+        assert first_number.__resolved__
+        assert first_number == 1
+
+        assert second_number.__resolved__
+        assert second_number == None
+        assert second_number is not None
+
+    def test_resolve_optional(self, numbers_config, monkeypatch):
         monkeypatch.setenv("FIRST_NUMBER", "1")
         monkeypatch.setenv("SECOND_NUMBER", "2")
 
         assert os.environ.get("FIRST_NUMBER") == "1"
-        assert os.environ.get("FIRST_NUMBER") == "2"
+        assert os.environ.get("SECOND_NUMBER") == "2"
 
-        self.config.fetch_all()
+        first_number = numbers_config.proxies["FIRST_NUMBER"]
+        second_number = numbers_config.proxies["SECOND_NUMBER"]
 
-        # noinspection PyUnresolvedReferences
-        assert self.FIRST_NUMBER.__resolved__
-        assert self.FIRST_NUMBER == 1
-        # noinspection PyUnresolvedReferences
-        assert self.SECOND_NUMBER.__resolved__
-        assert self.SECOND_NUMBER == 2
+        assert not first_number.__resolved__
+        assert not second_number.__resolved__
+
+        numbers_config.proxies.resolve()
+
+        assert first_number.__resolved__
+        assert first_number == 1
+
+        assert second_number.__resolved__
+        assert second_number == 2
+
+    def test_resolve_unresolve(self, numbers_config, monkeypatch):
+        monkeypatch.setenv("FIRST_NUMBER", "1")
+        monkeypatch.setenv("SECOND_NUMBER", "2")
+
+        assert os.environ.get("FIRST_NUMBER") == "1"
+        assert os.environ.get("SECOND_NUMBER") == "2"
+
+        first_number = numbers_config.proxies["FIRST_NUMBER"]
+        second_number = numbers_config.proxies["SECOND_NUMBER"]
+
+        assert not first_number.__resolved__
+        assert not second_number.__resolved__
+
+        numbers_config.proxies.resolve()
+
+        assert first_number.__resolved__
+        assert first_number == 1
+
+        assert second_number.__resolved__
+        assert second_number == 2
+
+        monkeypatch.setenv("FIRST_NUMBER", "3")
+        monkeypatch.setenv("SECOND_NUMBER", "4")
+
+        assert os.environ.get("FIRST_NUMBER") == "3"
+        assert os.environ.get("SECOND_NUMBER") == "4"
+
+        numbers_config.proxies.resolve()
+
+        assert first_number.__resolved__
+        assert first_number == 1
+
+        assert second_number.__resolved__
+        assert second_number == 2
+
+        numbers_config.proxies.unresolve()
+
+        assert not first_number.__resolved__
+        assert not second_number.__resolved__
+
+        numbers_config.proxies.resolve()
+
+        assert first_number.__resolved__
+        assert first_number == 3
+
+        assert second_number.__resolved__
+        assert second_number == 4
