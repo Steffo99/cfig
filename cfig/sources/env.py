@@ -1,18 +1,6 @@
-import typing as t
-import abc
 import os
-
-
-class Source(metaclass=abc.ABCMeta):
-    """
-    A source of values to be tapped by configurations.
-    """
-
-    @abc.abstractmethod
-    def get(self, key: str) -> t.Optional[str]:
-        """
-        Get the value with the given key from the source
-        """
+import typing as t
+from cfig.sources.base import Source
 
 
 class EnvironmentSource(Source):
@@ -49,28 +37,3 @@ class EnvironmentSource(Source):
         key = self._process_key(key)
         return self.environment.get(key)
 
-
-class EnvironmentFileSource(EnvironmentSource):
-    """
-    A source which gets values from files at paths specified in environment variables.
-    """
-
-    def __init__(self, *, prefix: str = "", suffix: str = "_FILE", environment=os.environ):
-        super().__init__(prefix=prefix, suffix=suffix, environment=environment)
-
-    def get(self, key: str) -> t.Optional[str]:
-        path = super().get(key)
-        if path is None:
-            return None
-        try:
-            with open(path, "r") as file:
-                return file.read()
-        except FileNotFoundError:
-            return None
-
-
-__all__ = (
-    "Source",
-    "EnvironmentSource",
-    "EnvironmentFileSource",
-)

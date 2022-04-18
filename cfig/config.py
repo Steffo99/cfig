@@ -8,7 +8,9 @@ import logging
 import collections
 from . import errors
 from . import customtyping as ct
-from . import sources as s
+from cfig.sources.base import Source
+from cfig.sources.env import EnvironmentSource
+from cfig.sources.envfile import EnvironmentFileSource
 
 log = logging.getLogger(__name__)
 
@@ -19,8 +21,8 @@ class Configuration:
     """
 
     DEFAULT_SOURCES = [
-        s.EnvironmentSource(),
-        s.EnvironmentFileSource(),
+        EnvironmentSource(),
+        EnvironmentFileSource(),
     ]
     """
     The sources used in :meth:`__init__` if no other source is specified.
@@ -73,14 +75,14 @@ class Configuration:
                 log.debug(f"Unresolving: {item!r}")
                 del item.__wrapped__
 
-    def __init__(self, *, sources: t.Optional[t.Collection[s.Source]] = None):
+    def __init__(self, *, sources: t.Optional[t.Collection[Source]] = None):
         """
         Create a new :class:`Configuration`.
         """
 
         log.debug(f"Initializing a new {self.__class__.__qualname__} object...")
 
-        self.sources: t.Collection[s.Source] = sources or self.DEFAULT_SOURCES
+        self.sources: t.Collection[Source] = sources or self.DEFAULT_SOURCES
         """
         Collection of sources to use for values of this configuration.
         """
