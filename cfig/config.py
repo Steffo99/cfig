@@ -31,17 +31,39 @@ class Configuration:
         An extended :class:`dict` with methods to perform some actions on the contained proxies.
         """
 
-        def resolve(self):
+        def resolve(self) -> None:
             """
             Resolve all values of the proxies inside this dictionary.
+
+            :raises .errors.BatchResolutionFailure: If it was not possible to resolve at least one value.
             """
 
-            log.debug("Resolving and caching all values...")
-            for item in self.values():
-                log.debug(f"Resolving: {item!r}")
-                _ = item.__wrapped__
+            errors_dict = {}
 
-        def unresolve(self):
+            log.debug("Resolving and caching all proxied values...")
+            for key, proxy in self.items():
+                log.debug(f"Resolving: {proxy!r}")
+                try:
+                    _ = proxy.__wrapped__
+                except Exception as e:
+                    errors_dict[key] = e
+
+            if errors_dict:
+                raise errors.BatchResolutionFailure(errors=errors_dict)
+
+        def resolve_failfast(self) -> None:
+            """
+            Resolve all values of the proxies inside this dictionary, failing immediately if an error occurs during a resolution, and raising the error itself.
+
+            :raises Exception: The error occurred during the resolution.
+            """
+
+            log.debug("Resolving and caching all proxied values in failfast mode...")
+            for key, proxy in self.items():
+                log.debug(f"Resolving: {proxy!r}")
+                _ = proxy.__wrapped__
+
+        def unresolve(self) -> None:
             """
             Unresolve all values of the proxies inside this dictionary.
             """
@@ -98,7 +120,7 @@ class Configuration:
 
             if not key:
                 log.debug("Determining key...")
-                key: str = self._find_resolver_key(configurable)
+                key = self._find_resolver_key(configurable)
                 log.debug(f"Key is: {key!r}")
 
             log.debug("Creating required item...")
@@ -135,7 +157,7 @@ class Configuration:
 
             if not key:
                 log.debug("Determining key...")
-                key: str = self._find_resolver_key(configurable)
+                key = self._find_resolver_key(configurable)
                 log.debug(f"Key is: {key!r}")
 
             log.debug("Creating optional item...")

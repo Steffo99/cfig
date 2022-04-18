@@ -60,8 +60,9 @@ class TestConfig:
         assert not os.environ.get("FIRST_NUMBER")
         assert not os.environ.get("SECOND_NUMBER")
 
-        with pytest.raises(cfig.MissingValueError):
+        with pytest.raises(cfig.BatchResolutionFailure) as ei:
             numbers_config.proxies.resolve()
+            assert isinstance(ei.value.errors["FIRST_NUMBER"], cfig.MissingValueError)
 
     def test_resolve_required(self, numbers_config, monkeypatch):
         monkeypatch.setenv("FIRST_NUMBER", "1")

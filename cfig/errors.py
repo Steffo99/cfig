@@ -1,6 +1,14 @@
-class DefinitionError(Exception):
+class CfigError(Exception):
+    """
+    Base class for all :mod:`cfig` errors.
+    """
+
+
+class DefinitionError(CfigError):
     """
     An error is present in the definition of a :class:`cfig.Configuration`.
+
+    This is a developer-side error: the user has no way to solve it.
     """
 
 
@@ -24,9 +32,11 @@ class DuplicateProxyNameError(ProxyRegistrationError):
     """
 
 
-class ConfigurationError(Exception):
+class ConfigurationError(CfigError):
     """
     An error is present in the configuration specified by the user.
+
+    This is a user-side error: the developer of the application has no way to solve it.
     """
 
 
@@ -36,6 +46,18 @@ class MissingValueError(ConfigurationError):
     """
 
 
+class BatchResolutionFailure(BaseException):
+    """
+    A cumulative error which sums the errors occurred while resolving proxied configuration values.
+    """
+
+    def __init__(self, errors: dict[str, Exception]):
+        self.errors: dict[str, Exception] = errors
+
+    def __repr__(self):
+        return f"<{self.__class__.__qualname__}: {len(self.errors)} errors>"
+
+
 __all__ = (
     "DefinitionError",
     "UnknownResolverNameError",
@@ -43,4 +65,5 @@ __all__ = (
     "DuplicateProxyNameError",
     "ConfigurationError",
     "MissingValueError",
+    "BatchResolutionFailure",
 )
