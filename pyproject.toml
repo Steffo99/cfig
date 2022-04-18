@@ -8,6 +8,10 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.10"
 lazy-object-proxy = "^1.7.1"
+click = { version = "^8.1.2", optional = true }
+
+[tool.poetry.extras]
+cli = ["click"]
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.1"
