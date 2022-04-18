@@ -1,7 +1,6 @@
 import typing as t
 import abc
 import os
-import configparser
 
 
 class Source(metaclass=abc.ABCMeta):
