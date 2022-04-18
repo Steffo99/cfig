@@ -64,6 +64,16 @@ class TestConfig:
             numbers_config.proxies.resolve()
             assert isinstance(ei.value.errors["FIRST_NUMBER"], cfig.MissingValueError)
 
+    def test_resolve_ff_missing(self, numbers_config, monkeypatch):
+        monkeypatch.setenv("FIRST_NUMBER", "")
+        monkeypatch.setenv("SECOND_NUMBER", "")
+
+        assert not os.environ.get("FIRST_NUMBER")
+        assert not os.environ.get("SECOND_NUMBER")
+
+        with pytest.raises(cfig.MissingValueError):
+            numbers_config.proxies.resolve_failfast()
+
     def test_resolve_required(self, numbers_config, monkeypatch):
         monkeypatch.setenv("FIRST_NUMBER", "1")
         monkeypatch.setenv("SECOND_NUMBER", "")
@@ -86,6 +96,28 @@ class TestConfig:
         assert second_number == None
         assert second_number is not None
 
+    def test_resolve_ff_required(self, numbers_config, monkeypatch):
+        monkeypatch.setenv("FIRST_NUMBER", "1")
+        monkeypatch.setenv("SECOND_NUMBER", "")
+
+        assert os.environ.get("FIRST_NUMBER") == "1"
+        assert not os.environ.get("SECOND_NUMBER")
+
+        first_number = numbers_config.proxies["FIRST_NUMBER"]
+        second_number = numbers_config.proxies["SECOND_NUMBER"]
+
+        assert not first_number.__resolved__
+        assert not second_number.__resolved__
+
+        numbers_config.proxies.resolve_failfast()
+
+        assert first_number.__resolved__
+        assert first_number == 1
+
+        assert second_number.__resolved__
+        assert second_number == None
+        assert second_number is not None
+
     def test_resolve_optional(self, numbers_config, monkeypatch):
         monkeypatch.setenv("FIRST_NUMBER", "1")
         monkeypatch.setenv("SECOND_NUMBER", "2")
@@ -100,6 +132,27 @@ class TestConfig:
         assert not second_number.__resolved__
 
         numbers_config.proxies.resolve()
+
+        assert first_number.__resolved__
+        assert first_number == 1
+
+        assert second_number.__resolved__
+        assert second_number == 2
+
+    def test_resolve_ff_optional(self, numbers_config, monkeypatch):
+        monkeypatch.setenv("FIRST_NUMBER", "1")
+        monkeypatch.setenv("SECOND_NUMBER", "2")
+
+        assert os.environ.get("FIRST_NUMBER") == "1"
+        assert os.environ.get("SECOND_NUMBER") == "2"
+
+        first_number = numbers_config.proxies["FIRST_NUMBER"]
+        second_number = numbers_config.proxies["SECOND_NUMBER"]
+
+        assert not first_number.__resolved__
+        assert not second_number.__resolved__
+
+        numbers_config.proxies.resolve_failfast()
 
         assert first_number.__resolved__
         assert first_number == 1
