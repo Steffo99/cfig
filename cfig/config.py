@@ -220,7 +220,6 @@ class Configuration:
                 log.debug("Running user-defined configurable function...")
                 val = resolver(val)
 
-            log.info(f"{key} = {val!r}")
             return val
 
         return _decorated
@@ -250,7 +249,6 @@ class Configuration:
 
             log.debug("Running user-defined configurable function...")
             val = f(val)
-            log.info(f"{key} = {val!r}")
 
             return val
 
