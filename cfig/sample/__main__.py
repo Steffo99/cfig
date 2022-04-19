@@ -1,3 +1,8 @@
+"""
+Sample configuration module using :mod:`cfig`.
+"""
+
+
 import cfig
 import typing
 
