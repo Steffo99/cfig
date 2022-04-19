@@ -2,6 +2,10 @@
 
 A configuration manager for Python 
 
+\[ [**Documentation**](https://cfig.readthedocs.io/) | [**PyPI**](https://pypi.org/project/cfig/) \]
+
+## Example
+
 ```python
 import cfig
 
@@ -17,17 +21,15 @@ if __name__ == "__main__":
 ```
 
 ```python
-from .mycfig import SECRET_KEY
+from mypackage.mycfig import SECRET_KEY
 
 print(f"My SECRET_KEY is: {SECRET_KEY}")
 ```
 
 ```console
-$ python -m cfig.sample
+$ python -m mypackage.mycfig
 === Configuration ===
 
 SECRET_KEY    → Required, but not set.
 Secret string used to manage HTTP session tokens.
 ```
-
-\[ [**Documentation**](https://cfig.readthedocs.io/) | [**PyPI**](https://pypi.org/project/cfig/) \]
