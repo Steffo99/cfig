@@ -24,4 +24,4 @@ SECRET_KEY    → Required, but not set.
 Secret string used to manage HTTP session tokens.
 ```
 
-\[ [**Documentation**]() | [**PyPI**](https://pypi.org/project/cfig/) \]
+\[ [**Documentation**](https://cfig.readthedocs.io/) | [**PyPI**](https://pypi.org/project/cfig/) \]
