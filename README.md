@@ -16,6 +16,12 @@ if __name__ == "__main__":
     config.cli()
 ```
 
+```python
+from .mycfig import SECRET_KEY
+
+print(f"My SECRET_KEY is: {SECRET_KEY})
+```
+
 ```console
 $ python -m cfig.sample
 === Configuration ===
