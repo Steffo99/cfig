@@ -6,6 +6,7 @@ import lazy_object_proxy
 import typing as t
 import logging
 import collections
+import textwrap
 from . import errors
 from . import customtyping as ct
 from cfig.sources.base import Source
@@ -273,6 +274,64 @@ class Configuration:
         self.proxies[key] = proxy
         log.debug(f"Registering doc {doc!r} in {key!r}")
         self.docs[key] = doc
+
+    def _click_root(self):
+        """
+        Generate the :mod:`click` root of this :class:`.Configuration`.
+        """
+
+        try:
+            import click
+        except ImportError:
+            raise errors.MissingDependencyError(f"To use {self.__class__.__qualname__}.cli, the `cli` optional dependency is needed.")
+
+        @click.command()
+        def root():
+            click.secho(f"=== Configuration ===", fg="bright_white", bold=True)
+            click.secho()
+
+            key_padding = max(map(lambda k: len(k), self.proxies.keys()))
+
+            try:
+                self.proxies.resolve()
+            except errors.BatchResolutionFailure as fail:
+                errors_dict = fail.errors
+            else:
+                errors_dict = {}
+
+            for key, proxy in self.proxies.items():
+                # Weird padding hack
+                # noinspection PyStringFormat
+                key_text = f"{{key:{key_padding}}}".format(key=key)
+
+                if key in errors_dict:
+                    error = errors_dict[key]
+                    if isinstance(error, errors.MissingValueError):
+                        click.secho(f"{key_text} → Required, but not set.", fg="red")
+                    elif isinstance(error, errors.InvalidValueError):
+                        click.secho(f"{key_text} → {' '.join(error.args)}", fg="red")
+                    else:
+                        click.secho(f"{key_text} → {error!r}", fg="white", bg="bright_red")
+                else:
+                    value = self.proxies[key]
+                    click.secho(f"{key_text} = {value.__wrapped__!r}", fg="green")
+
+                doc = self.docs[key]
+                doc = textwrap.dedent(doc)
+                doc = doc.strip("\n")
+                doc = "\n".join(doc.split("\n")[:3])
+
+                click.secho(f"{doc}", fg="white")
+                click.secho()
+
+        return root
+
+    def cli(self):
+        """
+        Run the command-line interface.
+        """
+
+        self._click_root()()
 
 
 __all__ = (

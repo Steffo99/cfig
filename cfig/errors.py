@@ -4,11 +4,15 @@ class CfigError(Exception):
     """
 
 
-class DefinitionError(CfigError):
+class DeveloperError(CfigError):
+    """
+    A developer-side error: the user has no way to solve it.
+    """
+
+
+class DefinitionError(DeveloperError):
     """
     An error is present in the definition of a :class:`cfig.Configuration`.
-
-    This is a developer-side error: the user has no way to solve it.
     """
 
 
@@ -32,17 +36,38 @@ class DuplicateProxyNameError(ProxyRegistrationError):
     """
 
 
-class ConfigurationError(CfigError):
+class UserError(CfigError):
+    """
+    A user-side error: the developer of the application has no way to fix it.
+    """
+
+
+class ConfigurationError(UserError):
     """
     An error is present in the configuration specified by the user.
-
-    This is a user-side error: the developer of the application has no way to solve it.
     """
 
 
 class MissingValueError(ConfigurationError):
     """
     A required configuration key has no value.
+    """
+
+
+class InvalidValueError(ConfigurationError):
+    """
+    A configuration key has an invalid value.
+
+    This error should be raised by the developer in resolvers if the developer knows that a invalid value has been passed, for example::
+
+        @config.required()
+        def INTEGER(val):
+            try:
+                return int(val)
+            except ValueError:
+                raise InvalidValueError("Not an int.")
+
+    It is not raised automatically, as certain errors might be caused by a mistake in the programming of the resolver.
     """
 
 
@@ -58,12 +83,23 @@ class BatchResolutionFailure(BaseException):
         return f"<{self.__class__.__qualname__}: {len(self.errors)} errors>"
 
 
+class MissingDependencyError(CfigError):
+    """
+    An optional dependency has not been installed, but it is required by a called function.
+    """
+
+
 __all__ = (
+    "CfigError",
+    "DeveloperError",
     "DefinitionError",
     "UnknownResolverNameError",
     "ProxyRegistrationError",
     "DuplicateProxyNameError",
+    "UserError",
     "ConfigurationError",
     "MissingValueError",
+    "InvalidValueError",
     "BatchResolutionFailure",
+    "MissingDependencyError",
 )
