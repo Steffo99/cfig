@@ -19,7 +19,7 @@ if __name__ == "__main__":
 ```python
 from .mycfig import SECRET_KEY
 
-print(f"My SECRET_KEY is: {SECRET_KEY})
+print(f"My SECRET_KEY is: {SECRET_KEY}")
 ```
 
 ```console
