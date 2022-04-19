@@ -8,7 +8,7 @@ class EnvironmentSource(Source):
     A source which gets values from environment variables.
     """
 
-    def __init__(self, *, prefix: str = "", suffix: str = "", environment=os.environ):
+    def __init__(self, *, prefix: str = "", suffix: str = "", environment=None):
         self.prefix: str = prefix
         """
         The prefix to be prepended to all environment variable names.
@@ -23,7 +23,7 @@ class EnvironmentSource(Source):
         For example, ``_VAL`` for raw values.
         """
 
-        self.environment = environment
+        self.environment = environment if environment is not None else os.environ
         """
         The environment to retrieve variable values from.
         
@@ -36,4 +36,3 @@ class EnvironmentSource(Source):
     def get(self, key: str) -> t.Optional[str]:
         key = self._process_key(key)
         return self.environment.get(key)
-

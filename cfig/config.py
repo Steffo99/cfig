@@ -131,7 +131,7 @@ class Configuration:
             log.debug("Item created successfully!")
 
             log.debug("Registering item in the configuration...")
-            self.register(key, item, doc or configurable.__doc__)
+            self.register(key, item, doc if doc is not None else configurable.__doc__)
             log.debug("Registered successfully!")
 
             # Return the created item, so it will take the place of the decorated function
@@ -168,7 +168,7 @@ class Configuration:
             log.debug("Item created successfully!")
 
             log.debug("Registering item in the configuration...")
-            self.register(key, item, doc or configurable.__doc__)
+            self.register(key, item, doc if doc is not None else configurable.__doc__)
             log.debug("Registered successfully!")
 
             # Return the created item, so it will take the place of the decorated function
@@ -215,11 +215,8 @@ class Configuration:
             val = self._retrieve_value_optional(key)
             log.debug("Retrieved value successfully!")
 
-            if val is None:
-                log.debug(f"Not running user-defined configurable function since value is {val!r}.")
-            else:
-                log.debug("Running user-defined configurable function...")
-                val = resolver(val)
+            log.debug("Running user-defined configurable function...")
+            val = resolver(val)
 
             return val
 
@@ -237,7 +234,7 @@ class Configuration:
         else:
             raise errors.MissingValueError(key)
 
-    def _create_proxy_required(self, key: str, f: ct.ResolverRequired) -> lazy_object_proxy.Proxy:
+    def _create_proxy_required(self, key: str, resolver: ct.ResolverRequired) -> lazy_object_proxy.Proxy:
         """
         Create, from a resolver, a proxy intolerant about non-specified values.
         """
@@ -249,7 +246,7 @@ class Configuration:
             log.debug("Retrieved val successfully!")
 
             log.debug("Running user-defined configurable function...")
-            val = f(val)
+            val = resolver(val)
 
             return val
 
@@ -262,7 +259,7 @@ class Configuration:
         :param key: The configuration key to register the proxy to.
         :param proxy: The proxy to register in :attr:`.proxies`.
         :param doc: The docstring to register in :attr:`.docs`.
-        :raises .errors.DuplicateProxyNameError` if the key already exists in either :attr:`.proxies` or :attr:`.docs`.
+        :raises .errors.DuplicateProxyNameError`: if the key already exists in either :attr:`.proxies` or :attr:`.docs`.
         """
 
         if key in self.proxies:

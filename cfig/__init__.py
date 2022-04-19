@@ -4,11 +4,27 @@ This package provides a simple but powerful configuration manager for Python app
 A goal is to allow easy integration of an application with multiple configuration standards, such as environment
 variables, dotenv files, and Docker Secrets files.
 
+.. code-block:: python
+
+    @config.required()
+    def SECRET_KEY(val: str) -> str:
+        "Secret string used to manage tokens."
+        return val
+
 Another goal is to provide informative error messages to the user who is configuring the application, so that they may
 understand what they are doing wrong and fix it immediately.
 
-The final goal is for the package to be fully typed, so that useful information can be received by the developer
-programming the consumption the configuration files.
+.. code-block:: console
+
+    $ python -m cfig.sample
+    === Configuration ===
+
+    SECRET_KEY    → Required, but not set.
+    Secret string used to manage HTTP session tokens.
+
+    HIDDEN_STRING = 'amogus'
+    A string which may be provided to silently print a string to the console.
+
 
 Example
 =======
@@ -46,8 +62,8 @@ application::
         return sqlalchemy.create_engine(val)
 
     if __name__ == "__main__":
-        # TODO: If the configuration file is executed as main, handle the call and display a user-friendly CLI interface.
-        config()
+        # If the configuration file is executed as main, handle the call and display a user-friendly CLI interface.
+        config.cli()
 
 Values can later be accessed by the program by importing the configuration file:
 
@@ -66,11 +82,11 @@ Values can later be accessed by the program by importing the configuration file:
 Terminology
 ===========
 
-In this documentation, some terminology is used repeatedly:
+In this documentation, the following terms are used:
 
-Configuration key
+Key
     The name of a configuration value, usually in SCREAMING_SNAKE_CASE.
-    For example, `PATH`, the name of the environment variable.
+    For example, ``PATH``, the name of the environment variable.
 
 Value
     A single non-processed configuration value in :class:`str` form.

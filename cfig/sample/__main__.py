@@ -21,7 +21,7 @@ def MY_FAVOURITE_STRING(val: str) -> str:
 @config.optional()
 def MY_OPTIONAL_STRING(val: typing.Optional[str]) -> str:
     """
-    Your favourite string, including the empty one!
+    Your favourite string, but optional!
     """
     return val or ""
 
@@ -49,6 +49,14 @@ def MY_FAVOURITE_EVEN_INT(val: str) -> int:
     if n % 2:
         raise cfig.InvalidValueError("Not an even int.")
     return n
+
+
+@config.required(key="KEY_NAME")
+def VAR_NAME(val: str) -> str:
+    """
+    This config value looks for a key in the configuration sources but is available at a different key to the programmer.
+    """
+    return val
 
 
 if __name__ == "__main__":

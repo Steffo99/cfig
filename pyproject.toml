@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "cfig"
 version = "0.1.0"
-description = "The ultimate configuration manager"
+description = "A configuration manager for Python"
 authors = ["Stefano Pigozzi <me@steffo.eu>"]
 license = "MIT"
 
