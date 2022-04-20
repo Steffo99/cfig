@@ -1,6 +1,6 @@
-###########
-Terminology
-###########
+########
+Glossary
+########
 
 In this documentation, the following terms are used:
 
