@@ -1,3 +1,8 @@
+"""
+This module contains all possible exceptions occurring related to :mod:`cfig`.
+"""
+
+
 class CfigError(Exception):
     """
     Base class for all :mod:`cfig` errors.

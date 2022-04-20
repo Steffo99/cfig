@@ -1,3 +1,7 @@
+"""
+This module defines the :class:`.Source` abstract class.
+"""
+
 import abc
 import typing as t
 

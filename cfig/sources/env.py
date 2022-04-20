@@ -1,3 +1,7 @@
+"""
+This module defines the :class:`.EnvironmentSource` :class:`~cfig.sources.base.Source`.
+"""
+
 import os
 import typing as t
 from cfig.sources.base import Source

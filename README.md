@@ -2,9 +2,7 @@
 
 A configuration manager for Python 
 
-\[ [**Documentation**](https://cfig.readthedocs.io/) | [**PyPI**](https://pypi.org/project/cfig/) \]
-
-## Example
+\[ [**Example**](https://github.com/Steffo99/cfig/tree/main/cfig/sample) | [**Documentation**](https://cfig.readthedocs.io/) | [**PyPI**](https://pypi.org/project/cfig/) \]
 
 ```python
 import cfig
@@ -13,7 +11,7 @@ config = cfig.Configuration()
 
 @config.required()
 def SECRET_KEY(val: str) -> str:
-    """Secret string used to manage tokens."""
+    """Secret string used to manage HTTP session tokens."""
     return val
 
 if __name__ == "__main__":
@@ -28,8 +26,10 @@ print(f"My SECRET_KEY is: {SECRET_KEY}")
 
 ```console
 $ python -m mypackage.mycfig
-=== Configuration ===
+===== Configuration =====
 
 SECRET_KEY    → Required, but not set.
 Secret string used to manage HTTP session tokens.
+
+===== End =====
 ```

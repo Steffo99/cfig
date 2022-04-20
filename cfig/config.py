@@ -102,44 +102,7 @@ class Configuration:
 
         log.debug("Initialized successfully!")
 
-    def required(self, key: t.Optional[str] = None, doc: t.Optional[str] = None) -> t.Callable[[ct.ResolverRequired], ct.TYPE]:
-        """
-        Mark a function as a resolver for a required configuration value.
-
-        It is a decorator factory, and therefore should be used like so::
-
-            @config.required()
-            def MY_KEY(val: str) -> str:
-                return val
-
-        Key can be overridden manually with the ``key`` parameter.
-
-        Docstring can be overridden manually with the ``doc`` parameter.
-        """
-
-        def _decorator(configurable: ct.ResolverRequired) -> ct.TYPE:
-            nonlocal key
-            nonlocal doc
-
-            if not key:
-                log.debug("Determining key...")
-                key = self._find_resolver_key(configurable)
-                log.debug(f"Key is: {key!r}")
-
-            log.debug("Creating required item...")
-            item: ct.TYPE = self._create_proxy_required(key, configurable)
-            log.debug("Item created successfully!")
-
-            log.debug("Registering item in the configuration...")
-            self.register(key, item, doc if doc is not None else configurable.__doc__)
-            log.debug("Registered successfully!")
-
-            # Return the created item, so it will take the place of the decorated function
-            return item
-
-        return _decorator
-
-    def optional(self, key: t.Optional[str] = None, doc: t.Optional[str] = None) -> t.Callable[[ct.ResolverOptional], ct.TYPE]:
+    def optional(self, key: t.Optional[str] = None, doc: t.Optional[str] = None) -> ct.ProxyOptional:
         """
         Mark a function as a resolver for a required configuration value.
 
@@ -176,8 +139,45 @@ class Configuration:
 
         return _decorator
 
+    def required(self, key: t.Optional[str] = None, doc: t.Optional[str] = None) -> ct.ProxyRequired:
+        """
+        Mark a function as a resolver for a required configuration value.
+
+        It is a decorator factory, and therefore should be used like so::
+
+            @config.required()
+            def MY_KEY(val: str) -> str:
+                return val
+
+        Key can be overridden manually with the ``key`` parameter.
+
+        Docstring can be overridden manually with the ``doc`` parameter.
+        """
+
+        def _decorator(configurable: ct.ResolverRequired) -> ct.TYPE:
+            nonlocal key
+            nonlocal doc
+
+            if not key:
+                log.debug("Determining key...")
+                key = self._find_resolver_key(configurable)
+                log.debug(f"Key is: {key!r}")
+
+            log.debug("Creating required item...")
+            item: ct.TYPE = self._create_proxy_required(key, configurable)
+            log.debug("Item created successfully!")
+
+            log.debug("Registering item in the configuration...")
+            self.register(key, item, doc if doc is not None else configurable.__doc__)
+            log.debug("Registered successfully!")
+
+            # Return the created item, so it will take the place of the decorated function
+            return item
+
+        return _decorator
+
     # noinspection PyMethodMayBeStatic
-    def _find_resolver_key(self, resolver: ct.Resolver) -> str:
+    def _find_resolver_key(self, resolver: ct.ResolverAny) -> str:
         """
         Find the key of a resolver by accessing its ``__name__``.
 
@@ -204,7 +204,7 @@ class Configuration:
             log.debug(f"No values found for {key!r}, returning None.")
             return None
 
-    def _create_proxy_optional(self, key: str, resolver: ct.ResolverOptional) -> lazy_object_proxy.Proxy:
+    def _create_proxy_optional(self, key: str, resolver: ct.ResolverOptional) -> ct.TYPE:
         """
         Create, from a resolver, a proxy tolerating non-specified values.
         """
@@ -234,7 +234,7 @@ class Configuration:
         else:
             raise errors.MissingValueError(key)
 
-    def _create_proxy_required(self, key: str, resolver: ct.ResolverRequired) -> lazy_object_proxy.Proxy:
+    def _create_proxy_required(self, key: str, resolver: ct.ResolverRequired) -> ct.TYPE:
         """
         Create, from a resolver, a proxy intolerant about non-specified values.
         """
@@ -284,7 +284,7 @@ class Configuration:
 
         @click.command()
         def root():
-            click.secho(f"=== Configuration ===", fg="bright_white", bold=True)
+            click.secho(f"===== Configuration =====", fg="bright_white", bold=True)
             click.secho()
 
             key_padding = max(map(lambda k: len(k), self.proxies.keys()))
@@ -320,6 +320,8 @@ class Configuration:
 
                 click.secho(f"{doc}", fg="white")
                 click.secho()
+
+            click.secho(f"===== End =====", fg="bright_white", bold=True)
 
         return root
 
