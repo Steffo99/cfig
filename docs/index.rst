@@ -5,22 +5,35 @@ cfig
 The :mod:`cfig` package provides a simple but powerful configuration manager for Python applications.
 
 
+Pitch
+=====
+
+Ever had trouble making your application configurable?
+Ever fought with global objects which impeded code reuse?
+Ever had a confused user ask you how to configure your application?
+In that case, :mod:`cfig` is for you!
+
+
+Minimal example
+===============
+
+.. image:: example-definition.png
+
+.. image:: example-usage.png
+
+.. image:: example-configuration.png
+
+
 Table of contents
 =================
 
 .. toctree::
 
-    installation
     goals
+    installation
+    quickstart
     reference
     glossary
-
-
-Example
-=======
-
-If you'd like to learn how to use :mod:`cfig` hands-on, read `the source code of the cfig.sample module <https://github.com/Steffo99/cfig/tree/main/cfig/sample>`_!
-
 
 
 Other tables and links

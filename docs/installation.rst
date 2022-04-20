@@ -24,14 +24,7 @@ You can install :mod:`cfig` through :mod:`pip`:
 
 .. code-block:: console
 
-    $ pip install cfig
-    Collecting cfig
-      Downloading cfig-0.2.1-py3-none-any.whl (12 kB)
-    Collecting lazy-object-proxy<2.0.0,>=1.7.1
-      Downloading lazy_object_proxy-1.7.1-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (62 kB)
-         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 62.3/62.3 KB 2.3 MB/s eta 0:00:00
-    Installing collected packages: lazy-object-proxy, cfig
-    Successfully installed cfig-0.2.1 lazy-object-proxy-1.7.1
+    $ pip install cfig[cli]
 
 .. note::
 
@@ -45,18 +38,7 @@ You can install :mod:`cfig` through :mod:`poetry`:
 
 .. code-block:: console
 
-    $ poetry add cfig
-    Using version ^0.2.1 for cfig
-
-    Updating dependencies
-    Resolving dependencies... (0.3s)
-
-    Writing lock file
-
-    Package operations: 2 installs, 0 updates, 0 removals
-
-      • Installing lazy-object-proxy (1.7.1)
-      • Installing cfig (0.2.1)
+    $ poetry add cfig[cli]
 
 
 From source
@@ -73,7 +55,7 @@ Introduced with :pep:`518`, :mod:`pip` supports automatic build and installation
 .. code-block:: console
 
     $ cd cfig
-    $ pip install .
+    $ pip install .[cli]
 
 
 For development
@@ -84,7 +66,7 @@ If you want to contribute to :mod:`cfig`, you can use :mod:`poetry` to install t
 .. code-block:: console
 
     $ cd cfig
-    $ poetry install
+    $ poetry install -E cli
 
 .. hint::
 
