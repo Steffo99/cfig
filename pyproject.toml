@@ -163,6 +163,7 @@ cli = ["click", "colorama"]
 pytest = "^7.1.1"
 Sphinx = "^4.5.0"
 sphinx-rtd-theme = "^1.0.0"
+pytest-github-actions-annotate-failures = "^0.1.6"
 
 
 [tool.pytest.ini_options]
