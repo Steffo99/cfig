@@ -8,20 +8,26 @@ The :mod:`cfig` package provides a simple but powerful configuration manager for
 Pitch
 =====
 
-Ever had trouble making your application configurable?
-Ever fought with global objects which impeded code reuse?
-Ever had a confused user ask you how to configure your application?
-In that case, :mod:`cfig` is for you!
+| Ever had trouble making your application configurable?
+| Ever fought with global objects which impeded code reuse?
+| Ever had a confused user ask you how to configure your application?
+| In that case, :mod:`cfig` is for you!
 
 
 Minimal example
 ===============
 
-.. image:: example-definition.png
+.. figure:: example-definition.png
 
-.. image:: example-usage.png
+    An example configuration value is defined.
 
-.. image:: example-configuration.png
+.. figure:: example-usage.png
+
+    The previously defined configuration value is used in the program.
+
+.. figure:: example-configuration.png
+
+    An user configuring the program previews the current configuration.
 
 
 Table of contents
