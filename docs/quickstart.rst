@@ -2,11 +2,11 @@
 Quickstart
 ##########
 
-This page describes how to use :mod:`cfig` in an application.
-
 .. note::
 
-    This page assumes you have already `installed <installation>` :mod:`cfig`.
+    This page assumes you have already :ref:`installed <Installation>` :mod:`cfig`.
+
+This page describes how to use :mod:`cfig` in an application.
 
 
 Creating a configuration module
@@ -54,16 +54,12 @@ To make use of :mod:`cfig`, you'll need to create one or more configurable varia
 
 The newly added lines create a new configurable value named ``SECRET_PASSWORD``:
 
-* the **name** of the function is used as :term:`key` of the configurable value;
+* the **name** of the function is used as key of the configurable value;
 * the ``@config.required()`` **decorator** marks the value as required, preventing your application from launching if it is not set;
 * the **function parameters** consist of a single :class:`str` parameter named ``val``, which is the string read from the environment variable having the same name of the function;
 * the **docstring** defines the meaning of the configuration value in natural language;
 * the **contents of the function** are used to process the input string into more refined Python objects;
 * the **return annotation** of the function is used to let IDEs know what type this configuration value will be.
-
-.. todo::
-
-    Maybe say that it is called a :term:`resolver`?
 
 
 Optional
@@ -97,12 +93,12 @@ Optional values differ from required ones in their decorator and signature:
 #. Since the passed ``val`` can be :data:`None`, it is given a signature of :data:`typing.Optional`.
 
 
-Processing
-----------
+Processing and validation
+-------------------------
 
-.. todo::
+The function defining a new configurable variable is also called a resolver: it will be executed only once, when its value is first requested, then the result is cached in a special object called proxy.
 
-    A few words about value processing.
+This allows us to perform some expensive operations inside, such as connecting to a database, or performing API requests to validate tokens and passwords.
 
 .. code-block:: python
     :emphasize-lines: 18,19,20,21,22,23,24
@@ -132,17 +128,20 @@ Processing
         except ValueError:
             raise cfig.InvalidValueError("Not an int.")
 
-.. todo::
+We can see that the new ``MAX_USERS`` configurable value processes the input string by trying to cast it into an :class:`int`, and raises a :exc:`~cfig.errors.InvalidValueError` containing the error message to display to the user if the cast fails.
 
-    A few words about slower resolvers.
+Ideally, errors happening in resolvers should be caught by the programmer and re-raised as :exc:`~cfig.errors.InvalidValueError`, so that users can distinguish them from bugs.
 
 
 Adding CLI support
 ==================
 
-.. todo::
+.. note::
 
-    What is the CLI and why is it useful?
+    This requires the CLI extra to be installed. See :ref:`Installation` for more details.
+
+To facilitate configuration on the users' part, :mod:`cfig` provides an integrated command line interface previewing the values of variables, triggered by a call to :meth:`~cfig.config.Configuration.cli`:
+
 
 .. code-block:: python
     :emphasize-lines: 26,27
@@ -175,18 +174,61 @@ Adding CLI support
     if __name__ == "__main__":
         config.cli()
 
-.. todo::
+By adding the :meth:`~cfig.config.Configuration.cli` call to a :mod:`__main__` clause, we allow users to access the CLI by manually running this module, but we prevent the CLI from starting when this module is accessed from another location.
 
-    What will be displayed here?
+Given our current configuration, something similar to this will be displayed:
+
+.. code-block:: console
+
+    $ python -m myproject.mydefinitionmodule
+    ===== Configuration =====
+
+    SECRET_PASSWORD → Required, but not set.
+    The secret password required to use this application!
+
+    SECRET_USERNAME = 'root'
+    The username to require users to login as. If unset, defaults to `root`.
+
+    MAX_USERS       → Required, but not set.
+    The maximum number of users that will be able to login to this application.
+
+    ===== End =====
 
 
 Use the configuration
 =====================
 
-.. todo::
+Finally, it is time to use in our application the configurable variables we defined!
 
-    How do I use the created values in my application?
+In the modules of your application, you can import and use the variables directly from the definition module:
 
-.. todo::
+.. code-block:: python
+    :emphasize-lines: 1,4,7,11,12
 
-    Why does ``is None`` not work?
+    from .mydefinitionmodule import SECRET_PASSWORD, SECRET_USERNAME, MAX_USERS
+
+    if __name__ == "__main__":
+        if username := input("Username: ") != SECRET_USERNAME:
+            print("error: invalid username")
+            sys.exit(1)
+        if password := input("Password: ") != SECRET_PASSWORD:
+            print("error: invalid password")
+            sys.exit(2)
+
+        print("Welcome, " + SECRET_USERNAME + "!")
+        print(f"The current user limit is: {MAX_USERS}")
+
+.. warning::
+
+    Since the values imported from the definition module are proxies to the real value, ``is`` comparisions won't work with them, but you can do ``==`` comparsions with them:
+
+    .. code-block:: python
+        :emphasize-lines: 6,7
+
+        @config.optional()
+        def ALWAYS_NONE(val: t.Optional[str]) -> str:
+            """This configuration value will always be None."""
+            return None
+
+        assert ALWAYS_NONE is not None
+        assert ALWAYS_NONE == None

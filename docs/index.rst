@@ -14,8 +14,8 @@ Pitch
 | In that case, :mod:`cfig` is for you!
 
 
-Minimal example
-===============
+Screenshots
+===========
 
 .. figure:: example-definition.png
 
@@ -39,7 +39,6 @@ Table of contents
     installation
     quickstart
     reference
-    glossary
 
 
 Other tables and links
