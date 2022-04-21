@@ -6,7 +6,13 @@ You can install :mod:`cfig` in multiple ways!
 
 .. note::
 
-    Never install packages outside :mod:`venv`, unless you know very well what you're doing!
+    The CLI tools are not included by default in the package, but are distributed as an `extra <https://stackoverflow.com/questions/52474931/what-is-extra-in-pypi-dependency>`_.
+
+    This page refers to the installation with the ``[cli]`` extra, but you may omit to install it if you do not intend to provide the CLI to users.
+
+.. warning::
+
+    Never install packages outside :mod:`venv`\ s, unless you know very well what you're doing!
 
 
 From PyPI
