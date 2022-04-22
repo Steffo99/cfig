@@ -29,6 +29,12 @@ html_theme_options = {
     # Set this to the main color of your project
     "style_nav_header_background": "#b72f37",
 }
+html_context = {
+    "display_github": True,
+    "github_user": "Steffo99",
+    "github_repo": "cfig",
+    "github_version": "main/docs/",
+}
 
 
 ##########################

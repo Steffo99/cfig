@@ -38,6 +38,7 @@ Table of contents
     goals
     installation
     quickstart
+    advanced
     reference
 
 

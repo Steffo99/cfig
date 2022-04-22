@@ -232,3 +232,36 @@ In the modules of your application, you can import and use the variables directl
 
         assert ALWAYS_NONE is not None
         assert ALWAYS_NONE == None
+
+
+Validate all variables at once
+==============================
+
+For a better user experience, you might want to ensure that all variables are correctly configured when your application is started.
+
+For that goal, :mod:`cfig` provides the :meth:`~cfig.config.Configuration.ProxyDict.resolve` method, which immediately tries to resolve and cache all configurable values defined in the :class:`~cfig.config.Configuration`:
+
+.. code-block:: python
+    :emphasize-lines: 1,4
+
+    from .mydefinitionmodule import config
+
+    if __name__ == "__main__":
+        config.proxies.resolve()
+
+The method will gather all errors occurring during the resolution, and will raise all of them at once with a :exc:`~cfig.errors.BatchResolutionFailure`, which you may want to handle in a custom way:
+
+.. code-block:: python
+    :emphasize-lines: 4,5,6,7
+
+    from .mydefinitionmodule import config
+
+    if __name__ == "__main__":
+        try:
+            config.proxies.resolve()
+        except cfig.BatchResolutionFailure as failure:
+            ...
+
+And that's it! You're using :mod:`cfig` in the best way possible :)
+
+See :doc:`advanced` for more features that may be useful in specific cases.

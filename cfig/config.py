@@ -21,7 +21,7 @@ class Configuration:
     A collection of proxies with methods to easily define more.
     """
 
-    DEFAULT_SOURCES = [
+    DEFAULT_SOURCES: list[Source] = [
         EnvironmentSource(),
         EnvironmentFileSource(),
     ]
@@ -76,14 +76,14 @@ class Configuration:
                 log.debug(f"Unresolving: {item!r}")
                 del item.__wrapped__
 
-    def __init__(self, *, sources: t.Optional[t.Collection[Source]] = None):
+    def __init__(self, *, sources: t.Optional[list[Source]] = None):
         """
         Create a new :class:`Configuration`.
         """
 
         log.debug(f"Initializing a new {self.__class__.__qualname__} object...")
 
-        self.sources: t.Collection[Source] = sources or self.DEFAULT_SOURCES
+        self.sources: list[Source] = sources or self.DEFAULT_SOURCES
         """
         Collection of sources to use for values of this configuration.
         """
