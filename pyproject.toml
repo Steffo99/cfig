@@ -22,7 +22,7 @@ build-backend = "poetry.core.masonry.api"
 name = "cfig"
 
 # The version of the package.
-version = "0.2.1"
+version = "0.2.2"
 
 # A brief, one-sentence description about your project.
 description = "A configuration manager for Python"
