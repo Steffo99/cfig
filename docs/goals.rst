@@ -96,6 +96,6 @@ Developer hints
 
 The last goal of :mod:`cfig` is having complete and useful typing, so that developer tools may provide correct and useful type hints on configuration values.
 
-:mod:`cfig` currently does that, albeit using a few hacks to hide the true nature of :term:`proxies <proxy>`.
+:mod:`cfig` currently does that, albeit using a few hacks to hide the true nature of configurable values.
 
 .. image:: example-typing.png
