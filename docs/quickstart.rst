@@ -226,7 +226,7 @@ In the modules of your application, you can import and use the variables directl
         :emphasize-lines: 6,7
 
         @config.optional()
-        def ALWAYS_NONE(val: t.Optional[str]) -> str:
+        def ALWAYS_NONE(val: t.Optional[str]) -> None:
             """This configuration value will always be None."""
             return None
 
