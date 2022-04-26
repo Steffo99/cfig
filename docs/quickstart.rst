@@ -125,7 +125,7 @@ This allows us to perform some expensive operations inside, such as connecting t
         """The maximum number of users that will be able to login to this application."""
         try:
             return int(val)
-        except ValueError:
+        except (ValueError, TypeError):
             raise cfig.InvalidValueError("Not an int.")
 
 We can see that the new ``MAX_USERS`` configurable value processes the input string by trying to cast it into an :class:`int`, and raises a :exc:`~cfig.errors.InvalidValueError` containing the error message to display to the user if the cast fails.
@@ -168,7 +168,7 @@ To facilitate configuration on the users' part, :mod:`cfig` provides an integrat
         """The maximum number of users that will be able to login to this application."""
         try:
             return int(val)
-        except ValueError:
+        except (ValueError, TypeError):
             raise cfig.InvalidValueError("Not an int.")
 
     if __name__ == "__main__":

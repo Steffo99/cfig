@@ -58,7 +58,7 @@ class TestConfig:
             """The first number to sum."""
             try:
                 return int(val)
-            except ValueError:
+            except (ValueError, TypeError):
                 raise cfig.InvalidValueError("Not an int.")
 
         @basic_config.optional()
@@ -66,7 +66,7 @@ class TestConfig:
             """The second number to sum."""
             try:
                 return int(val)
-            except ValueError:
+            except (ValueError, TypeError):
                 raise cfig.InvalidValueError("Not an int.")
 
         yield basic_config
