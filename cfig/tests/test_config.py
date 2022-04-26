@@ -2,6 +2,7 @@ import pytest
 import cfig
 import os
 import lazy_object_proxy
+import typing as t
 
 try:
     import click
@@ -27,7 +28,7 @@ class TestConfig:
             """The first number to sum."""
             try:
                 return int(val)
-            except ValueError:
+            except (ValueError, TypeError):
                 raise cfig.InvalidValueError("Not an int.")
 
         assert isinstance(FIRST_NUMBER, lazy_object_proxy.Proxy)
@@ -38,11 +39,13 @@ class TestConfig:
 
     def test_registration_optional(self, basic_config):
         @basic_config.optional()
-        def SECOND_NUMBER(val: str) -> int:
+        def SECOND_NUMBER(val: t.Optional[str]) -> t.Optional[int]:
             """The second number to sum."""
+            if val is None:
+                return None
             try:
                 return int(val)
-            except ValueError:
+            except (ValueError, TypeError):
                 raise cfig.InvalidValueError("Not an int.")
 
         assert isinstance(SECOND_NUMBER, lazy_object_proxy.Proxy)
@@ -62,8 +65,10 @@ class TestConfig:
                 raise cfig.InvalidValueError("Not an int.")
 
         @basic_config.optional()
-        def SECOND_NUMBER(val: str) -> int:
+        def SECOND_NUMBER(val: t.Optional[str]) -> t.Optional[int]:
             """The second number to sum."""
+            if val is None:
+                return None
             try:
                 return int(val)
             except (ValueError, TypeError):
