@@ -107,3 +107,5 @@ If the provided sources aren't enough, you may create a custom class inheriting 
 .. hint::
 
     Since :mod:`cfig.sources` is a namespace package, if you intend to distribute your custom source, you may want to do it by extending the namespace, for an easier developer workflow.
+
+

@@ -39,7 +39,7 @@ class Configuration:
             Resolve all values of the proxies inside this dictionary.
 
             :raises .errors.BatchResolutionFailure: If it was not possible to resolve at least one value.
-            :returns: A :class:`dict` containing all the resolved values.
+            :returns: A :class:`dict` containing all the resolved, unproxied, values.
             """
 
             errors_dict = {}
@@ -65,7 +65,7 @@ class Configuration:
             Resolve all values of the proxies inside this dictionary, failing immediately if an error occurs during a resolution, and raising the error itself.
 
             :raises Exception: The error occurred during the resolution.
-            :returns: A :class:`dict` containing all the resolved values.
+            :returns: A :class:`dict` containing all the resolved, unproxied, values.
             """
 
             result_dict = {}
