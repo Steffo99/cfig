@@ -34,37 +34,49 @@ class Configuration:
         An extended :class:`dict` with methods to perform some actions on the contained proxies.
         """
 
-        def resolve(self) -> None:
+        def resolve(self) -> dict[str, t.Any]:
             """
             Resolve all values of the proxies inside this dictionary.
 
             :raises .errors.BatchResolutionFailure: If it was not possible to resolve at least one value.
+            :returns: A :class:`dict` containing all the resolved values.
             """
 
             errors_dict = {}
+            result_dict = {}
 
             log.debug("Resolving and caching all proxied values...")
             for key, proxy in self.items():
                 log.debug(f"Resolving: {proxy!r}")
                 try:
-                    _ = proxy.__wrapped__
+                    value = proxy.__wrapped__
                 except Exception as e:
                     errors_dict[key] = e
+                else:
+                    result_dict[key] = value
 
             if errors_dict:
                 raise errors.BatchResolutionFailure(errors=errors_dict)
 
-        def resolve_failfast(self) -> None:
+            return result_dict
+
+        def resolve_failfast(self) -> dict[str, t.Any]:
             """
             Resolve all values of the proxies inside this dictionary, failing immediately if an error occurs during a resolution, and raising the error itself.
 
             :raises Exception: The error occurred during the resolution.
+            :returns: A :class:`dict` containing all the resolved values.
             """
+
+            result_dict = {}
 
             log.debug("Resolving and caching all proxied values in failfast mode...")
             for key, proxy in self.items():
                 log.debug(f"Resolving: {proxy!r}")
-                _ = proxy.__wrapped__
+                value = proxy.__wrapped__
+                result_dict[key] = value
+
+            return result_dict
 
         def unresolve(self) -> None:
             """

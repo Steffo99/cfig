@@ -131,7 +131,7 @@ class TestConfig:
         assert not first_number.__resolved__
         assert not second_number.__resolved__
 
-        numbers_config.proxies.resolve()
+        result_dict = numbers_config.proxies.resolve()
 
         assert first_number.__resolved__
         assert first_number == 1
@@ -139,6 +139,10 @@ class TestConfig:
         assert second_number.__resolved__
         assert second_number == None
         assert second_number is not None
+
+        assert result_dict["FIRST_NUMBER"] == 1
+        assert result_dict["SECOND_NUMBER"] == None
+        assert result_dict["SECOND_NUMBER"] is None
 
     def test_resolve_ff_required(self, numbers_config, monkeypatch):
         monkeypatch.setenv("FIRST_NUMBER", "1")
@@ -153,7 +157,7 @@ class TestConfig:
         assert not first_number.__resolved__
         assert not second_number.__resolved__
 
-        numbers_config.proxies.resolve_failfast()
+        result_dict = numbers_config.proxies.resolve_failfast()
 
         assert first_number.__resolved__
         assert first_number == 1
@@ -161,6 +165,10 @@ class TestConfig:
         assert second_number.__resolved__
         assert second_number == None
         assert second_number is not None
+
+        assert result_dict["FIRST_NUMBER"] == 1
+        assert result_dict["SECOND_NUMBER"] == None
+        assert result_dict["SECOND_NUMBER"] is None
 
     def test_resolve_optional(self, numbers_config, monkeypatch):
         monkeypatch.setenv("FIRST_NUMBER", "1")
@@ -175,13 +183,16 @@ class TestConfig:
         assert not first_number.__resolved__
         assert not second_number.__resolved__
 
-        numbers_config.proxies.resolve()
+        result_dict = numbers_config.proxies.resolve()
 
         assert first_number.__resolved__
         assert first_number == 1
 
         assert second_number.__resolved__
         assert second_number == 2
+
+        assert result_dict["FIRST_NUMBER"] == 1
+        assert result_dict["SECOND_NUMBER"] == 2
 
     def test_resolve_ff_optional(self, numbers_config, monkeypatch):
         monkeypatch.setenv("FIRST_NUMBER", "1")
@@ -196,13 +207,16 @@ class TestConfig:
         assert not first_number.__resolved__
         assert not second_number.__resolved__
 
-        numbers_config.proxies.resolve_failfast()
+        result_dict = numbers_config.proxies.resolve_failfast()
 
         assert first_number.__resolved__
         assert first_number == 1
 
         assert second_number.__resolved__
         assert second_number == 2
+
+        assert result_dict["FIRST_NUMBER"] == 1
+        assert result_dict["SECOND_NUMBER"] == 2
 
     def test_resolve_unresolve(self, numbers_config, monkeypatch):
         monkeypatch.setenv("FIRST_NUMBER", "1")
@@ -217,13 +231,16 @@ class TestConfig:
         assert not first_number.__resolved__
         assert not second_number.__resolved__
 
-        numbers_config.proxies.resolve()
+        result_dict = numbers_config.proxies.resolve()
 
         assert first_number.__resolved__
         assert first_number == 1
 
         assert second_number.__resolved__
         assert second_number == 2
+
+        assert result_dict["FIRST_NUMBER"] == 1
+        assert result_dict["SECOND_NUMBER"] == 2
 
         monkeypatch.setenv("FIRST_NUMBER", "3")
         monkeypatch.setenv("SECOND_NUMBER", "4")
@@ -231,7 +248,7 @@ class TestConfig:
         assert os.environ.get("FIRST_NUMBER") == "3"
         assert os.environ.get("SECOND_NUMBER") == "4"
 
-        numbers_config.proxies.resolve()
+        result_dict = numbers_config.proxies.resolve()
 
         assert first_number.__resolved__
         assert first_number == 1
@@ -239,18 +256,24 @@ class TestConfig:
         assert second_number.__resolved__
         assert second_number == 2
 
+        assert result_dict["FIRST_NUMBER"] == 1
+        assert result_dict["SECOND_NUMBER"] == 2
+
         numbers_config.proxies.unresolve()
 
         assert not first_number.__resolved__
         assert not second_number.__resolved__
 
-        numbers_config.proxies.resolve()
+        result_dict = numbers_config.proxies.resolve()
 
         assert first_number.__resolved__
         assert first_number == 3
 
         assert second_number.__resolved__
         assert second_number == 4
+
+        assert result_dict["FIRST_NUMBER"] == 3
+        assert result_dict["SECOND_NUMBER"] == 4
 
     @pytest.fixture(scope="function")
     def click_runner(self):
