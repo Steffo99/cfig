@@ -262,6 +262,10 @@ The method will gather all errors occurring during the resolution, and will rais
         except cfig.BatchResolutionFailure as failure:
             ...
 
+
+Conclusion
+==========
+
 And that's it! You're using :mod:`cfig` in the best way possible :)
 
 See :doc:`advanced` for more features that may be useful in specific cases.
