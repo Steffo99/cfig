@@ -34,6 +34,25 @@ Please note that the :meth:`~cfig.config.Configuration.ProxyDict.resolve_failfas
             ...
 
 
+Access all resolved variables at once
+=====================================
+
+In certain cases, you might want to obtain a :class:`dict` containing all resolved variables, without them being proxied.
+
+You may have noticed that both :meth:`~cfig.config.Configuration.ProxyDict.resolve` and :meth:`~cfig.config.Configuration.ProxyDict.resolve_failfast` return a :class:`dict`: that's exactly what you need!
+
+.. code-block:: python
+    :emphasize-lines: 2
+
+    ...
+    static_cfg = config.proxies.resolve()
+    ...
+
+.. note::
+
+    Be aware that the :class:`dict` returned will never change, even after a :ref:`reload <Reloading variables>`!
+
+
 Reloading variables
 ===================
 
