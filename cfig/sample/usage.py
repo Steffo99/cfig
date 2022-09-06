@@ -2,7 +2,9 @@
 This module contains an example of how to use the values defined in a cfig definition module.
 """
 
-from .definition import EXAMPLE_STRING, EXAMPLE_NUMBER, DATABASE_ENGINE
+from .definition import EXAMPLE_STRING, EXAMPLE_NUMBER, DATABASE_ENGINE, config
+
+config.proxies.resolve()
 
 
 if __name__ == "__main__":

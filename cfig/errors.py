@@ -79,9 +79,41 @@ class InvalidValueError(ConfigurationError):
 class BatchResolutionFailure(BaseException):
     """
     A cumulative error which sums the errors occurred while resolving proxied configuration values.
+
+    It inherits from :class:`BaseException` to be distinguishable from regular :class:`Exception`s occouring inside the resolvers.
+
+    It uses some formatting tricks to display the missing keys in the configuration error message:
+
+    .. code-block:: console
+
+        $ python -m cfig.sample.usage
+        Traceback (most recent call last):
+          ...
+          File "./cfig/sample/usage.py", line 7, in <module>
+            config.proxies.resolve()
+          File "./cfig/config.py", line 59, in resolve
+            raise errors.BatchResolutionFailure(errors=errors_dict)
+        cfig.errors.BatchResolutionFailure: 4 errors occurred during the resolution of the config:
+        * EXAMPLE_NUMBER        → InvalidValueError: Not an int.
+        * TELEGRAM_BOT_TOKEN    → MissingValueError: TELEGRAM_BOT_TOKEN
+        * DISCORD_CLIENT_SECRET → MissingValueError: DISCORD_CLIENT_SECRET
+        * DATABASE_URI          → MissingValueError: DATABASE_URI
     """
 
     def __init__(self, errors: dict[str, Exception]):
+        message = [f"{len(errors)} errors occurred during the resolution of the config:"]
+
+        key_padding = max(map(lambda k: len(k), errors.keys()))
+
+        for key, val in errors.items():
+            # Weird padding hack, part 2
+            # noinspection PyStringFormat
+            key_text = f"{{key:{key_padding}}}".format(key=key)
+
+            message.append(f"* {key_text} → {val.__class__.__qualname__}: {val}")
+
+        super().__init__("\n".join(message))
+
         self.errors: dict[str, Exception] = errors
 
     def __repr__(self):
