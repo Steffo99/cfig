@@ -22,7 +22,7 @@ build-backend = "poetry.core.masonry.api"
 name = "cfig"
 
 # The version of the package.
-version = "0.3.0"
+version = "0.3.1"
 
 # A brief, one-sentence description about your project.
 description = "A configuration manager for Python"
@@ -137,7 +137,7 @@ classifiers = [
 # nothing means "this specific release"
 #          3.10.1  →  == 3.10.1
 
-python = "^3.10"
+python = "^3.9"
 lazy-object-proxy = "^1.7.1"
 click = { version = "^8.1.2", optional = true }
 colorama = { version = "^0.4.4", optional = true }
