@@ -35,14 +35,14 @@ jobs:
         run: poetry build --no-interaction
     
       - name: "⬆️ Upload code package to artifacts"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "Build"
           path: dist/*.tar.gz
           if-no-files-found: error
 
       - name: "⬆️ Upload wheel package to artifacts"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "Build"
           path: dist/*.whl
