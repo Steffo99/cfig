@@ -1,8 +1,20 @@
+<div align="center"> 
+
+![](.media/icon-128x128_round.png)
+
 # cfig
 
-A configuration manager for Python 
+Configuration helper for Python 
 
-\[ [**Example**](https://github.com/Steffo99/cfig/tree/main/cfig/sample) | [**Documentation**](https://cfig.readthedocs.io/) | [**PyPI**](https://pypi.org/project/cfig/) \]
+</div>
+
+## Links
+
+[![PyPI](https://img.shields.io/pypi/v/cfig)](https://pypi.org/project/cfig)
+
+[![Documentation](https://img.shields.io/readthedocs/cfig)](https://cfig.readthedocs.io/en/latest/)
+
+## Example
 
 ```python
 import cfig
